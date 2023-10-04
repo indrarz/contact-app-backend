@@ -5,7 +5,7 @@ import { Contact } from '@prisma/client';
 
 @Injectable()
 export class ContactService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) {}
 
   async getAllContacts() {
     return this.prisma.contact.findMany();
