@@ -1,8 +1,7 @@
-import { Controller, Get, Post, Delete, Param, Body, UseInterceptors, UploadedFile, Res } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Param, Body, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { ContactService } from '../service/contact.service';
 import { Contact } from '@prisma/client';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { Response } from 'express';
 import { extname } from 'path';
 
 @Controller('api/v1/contact')
@@ -16,26 +15,9 @@ export class ContactController {
   }
 
   @Get(':id') // Endpoint untuk mendapatkan kontak berdasarkan ID
-  async getContactById(@Param('id') id: string, @Res() res: Response) {
-    try {
-      const contact = await this.contactService.getContactById(Number(id));
-
-      if (!contact) {
-        return res.status(404).json({ message: 'Kontak tidak ditemukan' });
-      }
-
-      if (contact.foto) {
-        // Jika ada data foto dalam format Base64, kirimkannya sebagai gambar
-        const imageBuffer = Buffer.from(contact.foto, 'base64');
-        res.setHeader('Content-Type', 'image/jpeg'); // Atur tipe konten sesuai kebutuhan
-        res.end(imageBuffer);
-      } else {
-        return res.status(404).json({ message: 'Foto tidak tersedia' });
-      }
-    } catch (error) {
-      console.error(error);
-      return res.status(500).json({ message: 'Terjadi kesalahan server' });
-    }
+  async getContactById(@Param('id') id: string) {
+    const contact = await this.contactService.getContactById(Number(id));
+    return contact;
   }
 
   @Post() // Endpoint untuk menambahkan kontak baru
