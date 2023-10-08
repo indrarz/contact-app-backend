@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Delete, Param, Body, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Param, Body, UseInterceptors, UploadedFile, Res } from '@nestjs/common';
 import { ContactService } from '../service/contact.service';
 import { Contact } from '@prisma/client';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { Response } from 'express';
 import { extname } from 'path';
 
 @Controller('api/v1/contact')
@@ -15,9 +16,32 @@ export class ContactController {
   }
 
   @Get(':id') // Endpoint untuk mendapatkan kontak berdasarkan ID
-  async getContactById(@Param('id') id: string) {
-    const contact = await this.contactService.getContactById(Number(id));
-    return contact;
+  async getContactById(@Param('id') id: string, @Res() res: Response) {
+    try {
+      const contact = await this.contactService.getContactById(Number(id));
+
+      if (!contact) {
+        return res.status(404).json({ message: 'Kontak tidak ditemukan' });
+      }
+
+      if (contact.foto) {
+        // Mendapatkan tipe konten dari data foto (contoh: image/jpeg)
+        const contentType = contact.foto.split(';')[0].split(':')[1];
+
+        // Mengirim respons dengan tipe konten yang benar
+        res.setHeader('Content-Type', contentType);
+
+        // Mengirim data foto Base64 sebagai buffer
+        const base64Data = contact.foto.split(',')[1];
+        const imageBuffer = Buffer.from(base64Data, 'base64');
+        res.end(imageBuffer);
+      } else {
+        return res.status(404).json({ message: 'Foto tidak tersedia' });
+      }
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ message: 'Terjadi kesalahan server' });
+    }
   }
 
   @Post() // Endpoint untuk menambahkan kontak baru
