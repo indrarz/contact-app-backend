@@ -15,8 +15,8 @@ export class ContactController {
     return contacts;
   }
 
-  @Get(':id') // Endpoint untuk mendapatkan kontak berdasarkan ID
-  async getContactById(@Param('id') id: string, @Res() res: Response) {
+  @Get(':id') // Endpoint untuk mendapatkan kontak berdasarkan ID (tanpa gambar)
+  async getContactInfoById(@Param('id') id: string, @Res() res: Response) {
     try {
       const contact = await this.contactService.getContactById(Number(id));
 
@@ -24,20 +24,39 @@ export class ContactController {
         return res.status(404).json({ message: 'Kontak tidak ditemukan' });
       }
 
-      if (contact.foto) {
-        // Mendapatkan tipe konten dari data foto (contoh: image/jpeg)
-        const contentType = contact.foto.split(';')[0].split(':')[1];
+      // Membuat objek respons yang berisi data nama dan nomor HP
+      const responseData = {
+        id: contact.id,
+        nama: contact.nama,
+        nomorHp: contact.nomorhp,
+      };
 
-        // Mengirim respons dengan tipe konten yang benar
-        res.setHeader('Content-Type', contentType);
+      res.json(responseData);
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ message: 'Terjadi kesalahan server' });
+    }
+  }
 
-        // Mengirim data foto Base64 sebagai buffer
-        const base64Data = contact.foto.split(',')[1];
-        const imageBuffer = Buffer.from(base64Data, 'base64');
-        res.end(imageBuffer);
-      } else {
-        return res.status(404).json({ message: 'Foto tidak tersedia' });
+  @Get(':id/foto') // Endpoint untuk mendapatkan gambar kontak berdasarkan ID
+  async getContactImageById(@Param('id') id: string, @Res() res: Response) {
+    try {
+      const contact = await this.contactService.getContactById(Number(id));
+
+      if (!contact || !contact.foto) {
+        return res.status(404).json({ message: 'Foto kontak tidak ditemukan' });
       }
+
+      // Mendapatkan tipe konten dari data foto (contoh: image/jpeg)
+      const contentType = contact.foto.split(';')[0].split(':')[1];
+
+      // Mengirim respons dengan tipe konten yang benar
+      res.setHeader('Content-Type', contentType);
+
+      // Mengirim data foto Base64 sebagai buffer
+      const base64Data = contact.foto.split(',')[1];
+      const imageBuffer = Buffer.from(base64Data, 'base64');
+      res.end(imageBuffer);
     } catch (error) {
       console.error(error);
       return res.status(500).json({ message: 'Terjadi kesalahan server' });
