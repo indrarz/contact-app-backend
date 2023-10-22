@@ -16,7 +16,7 @@ async function bootstrap() {
 
   // Mengaktifkan CORS
   app.enableCors({
-    origin: 'https://contact-apps.up.railway.app/',
+    origin: 'http://localhost:3000/',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
